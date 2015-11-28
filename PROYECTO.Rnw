@@ -1,0 +1,470 @@
+\documentclass[12pt,letterpaper]{article}
+ \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage[ansinew]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{dsfont}
+\usepackage{multicol} 
+\usepackage{subfigure}
+\usepackage{graphicx}
+\usepackage{float} 
+\usepackage{verbatim} 
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{fancyhdr}
+\pagestyle{fancy} 
+\fancyhead[LO]{\leftmark}
+\usepackage{caption}
+\newtheorem{definicion}{Definci\'on}
+
+\begin{document}
+
+\begin{titlepage}
+\setlength{\unitlength}{1 cm} %Especificar unidad de trabajo
+
+\begin{center}
+\textbf{{\large UNIVERSIDAD DE EL SALVADOR}\\[0.50 cm]
+{\large FACULTAD MULTIDISCIPLINARIA DE OCCIDENTE}\\[0.50 cm]
+{\large DEPARTAMENTO DE MATEM\'ATICA}}\\[0.50 cm]
+
+\begin{picture}(18,4)
+ \put(7,0){\includegraphics[width=4cm]{minerva.jpg}}
+\end{picture}
+\\[0.25 cm]
+
+\textbf{{\large Licenciatura en Estad\'istica}\\[1.25cm]
+{\large Control Estad\'istico del Paquete R }\\[2 cm]
+%\setlength{\unitlength}{1 cm}
+{\large  \textbf{Estimaci\'on en R: Intervalos de confianza.}}\\[3 cm]
+{\large Alumna:}\\
+{\large Martha Yoana Medina S\'anchez}\\[2cm]
+{\large Fecha de elaboraci\'on}\\
+Santa Ana - \today }
+\end{center}
+\end{titlepage}
+
+\newtheorem{teorema}{Teorema}
+\newtheorem{prop}{Proposici\'on}[section]
+
+\lhead{Estimaci\'on por intervalos de confianza}
+
+\lfoot{LICENCIATURA EN ESTAD\'ISTICA}
+\cfoot{UESOCC}
+\rfoot{\thepage}
+%\pagestyle{fancy} 
+
+\setcounter{page}{1}
+\newpage
+
+\begin{center}
+\textbf{1. INTERVALOS DE CONFIANZA PARA UNA MEDIA POBLACIONAL.}
+\end{center}
+ 
+Antes que nada se definira que es un intervalo de confianza:\\
+
+Conjunto de valores que se forman a partir de una muestra de datos de forma que exista la posibilidad de que el par\'ametro poblacional ocurra dentro de dicho conjunto con una probabilidad especifica. La probabilidad especifica recibe el nombre de nivel de confianza.
+
+\begin{center}
+\textbf{PRIMER CASO: VARIANZA CONOCIDA ($SIGMA^2$).}
+\end{center}
+
+Un intervalo de confianza se calcula con el empleo de dos estadisticos : la media muestral $\~X$ y la desviaci\'on est\'andar.\\
+
+En general, un intervalo de confianza de la media poblacional, cuando se conoce la desviaci\'on est\'andar poblacional, se calcula de la siguiente manera:\\
+
+$\~X$-$Z_\ (alfa/2)$*$(sigma/sqrt(n))$$<$=$\μ$$<$=$\~X$-$Z_\ (alfa/2)$*$(sigma/sqrt(n))$\\
+
+Ejemplo: Los siguentes datos son los pesos en gramos de 20 cajas de cereal. Si el peso de la caja es una variable aleatoria normal con una desviaci\'on est\'andar de 5 gr. Obtenga los intervalos de confianza estimado del 99\% para la media del proceso del llenado
+<<>>=
+
+Peso <- c( 506, 510, 493, 508, 497, 506, 499, 512, 502, 503, 504, 514, 
+            505, 505, 509, 496, 480, 499, 560, 478);
+
+Peso
+
+# Construyendo una funci\'on en R para realizar la prueba de intervalos de
+# confianza para varianza conocida.
+
+intervalovarcono <- function(n, sigma, nivel.conf=0.99)
+{
+   n = length(Peso) 
+   media = mean(Peso) # Calcula la media
+  alfa = (1 - nivel.conf) # Calcula el alfa
+  margen_error =  qnorm(alfa/2, mean = 0, sd = 1, lower.tail = FALSE)*
+    (sigma/sqrt(n))
+  print(rbind(media, n, alfa, margen_error)) 
+  LInf = media - margen_error 
+  LSup = media + margen_error 
+  print("LInf, LSup") 
+  print(paste("Intervalo para varianza conocida es: [", round(LInf, 2), 
+              ",", round(LSup, 2), "]")) 
+} 
+ n=length(Peso); sigma=5; nivel.conf=0.99 
+ 
+intervalovarcono(n, nivel.conf)
+@
+
+\begin{center}
+\textbf{CASO DOS: VARIANZA DESCONICIDA ($SIGMA^2$)}
+\end{center}
+
+En la mayoria de los casos de muestreo, no se conoce la desviac\'ion est\'andar de la poblaci\'on.\\
+
+Para encontrar el intervalo de confianza de la media poblacional con $sigma$ desconocida.\\
+
+$\~X$-$Z_\ (alfa/2, gl)$*$(sigma/sqrt(n))$$<$=$\μ$$<$=$\~X$-$Z_\ (alfa/2, gl)$*$(sigma/sqrt(n))$\\
+
+
+Ejemplo: La C\'amara de Comercio de una ciudad se encuentra interesada en estimar la cantidad promedio de dinero que gasta la gente que asiste a convenciones, calculando comidas, alojamiento y entretenimiento por dia. De las distintas convenciones que se llevan acabo en la ciudad, se seleccionaron 16 personas y se les pregunto la cantidad de dinero que gastaba por d\'ia. Si se supone que la cantidad de dinero gastada en un dia es una variable distribuida normal, obtener los intervalos de confianza estimado del 90\% para la cantidad promedio real.
+
+<<>>=
+Gasto <- c( 150, 175, 163, 148, 142, 189, 135, 174, 168, 152, 158, 184, 
+            134, 146, 155, 163);
+
+Gasto
+
+# Construyendo una funci\'on en R para realizar la prueba de intervalos de
+# confianza para varianza desconocida.
+
+intervardescono <- function(n, nivel.conf=0.90)
+{
+   n = length(Gasto) 
+   media = mean(Gasto) # Calcula la media
+  desviacion = sd(Gasto) # Calcula la desviacion est\'andar
+  alfa = (1 - nivel.conf) # Calcula el alfa
+  gl = n - 1 # Calcula los grados de libertad
+  margen_error =  qt(alfa/2, gl, lower.tail = FALSE)*
+    (desviacion/sqrt(length(Gasto)))
+  print(rbind(n, media, desviacion, alfa, gl, margen_error)) 
+  LInf = media - margen_error 
+  LSup = media + margen_error 
+  print("LInf, LSup") 
+  print(paste("Intervalo para varianza conocida es: [", round(LInf, 2), 
+              ",", round(LSup, 2), "]")) 
+} 
+ n=length(Gasto); nivel.conf=0.90 
+ 
+intervardescono (n, nivel.conf)
+@
+
+<<>>=
+
+# Utilizando la funci\'on proporcionada por el R.
+
+Gasto <- c( 150, 175, 163, 148, 142, 189, 135, 174, 168, 152, 158, 184, 
+            134, 146, 155, 163);
+
+Gasto
+
+
+t.test(Gasto, alternative = "two.sided", conf.level = 0.90) 
+@
+
+\begin{center}
+\textbf{2. INTERVALOS DE CONFIANZA PARA UNA PROPORCI\'ON.}
+\end{center}
+
+Para crear el intervalo de confianza de una proporci\'on de poblaci\'on se aplica la f\'ormula:\\
+
+$\^p$ - $Z_\ (alfa/2)$*$(sqrt(p(1 - p)/n)$$<$=$p$$<$=$\^p$ + $Z_\ (alfa/2)$*$(sqrt(p(1 - p)/n)\\
+
+
+Ejemplo: En una a\~no de elecciones presidenciales, los candidatos quieren saber que votar\'an los votantes de diferentes partes del pa\'is. Suponga que se pregunta a 420 posibles votantes del noreste si votar\'ian a un determinado candidato si las elecciones fueran hoy. En esta muestra 233 indicaron que votar\'ia a favor de este candidato. Halle la estimaci\'on del intervalo de confianza 95\% del apoyo con que cuenta este cantidato en el noreste.  
+
+<<>>=
+# Construyendo una funci\'on en R para realizar la prueba de intervalos de
+# confianza para proporci\'on.
+
+intervaloProp <- function(x, n, nivel.conf = 0.95) 
+  
+{ 
+pe <- x/n 
+alfa <- (1 - nivel.conf) 
+z <- qnorm(1-alfa/2) 
+SE <- sqrt(pe*(1-pe)/n) 
+  print(rbind(pe, alfa, z, SE))  
+LInf <- pe-z*SE 
+LSup <- pe+z*SE 
+print(" ") 
+  print(paste("Intervalo para p es: [", round(LInf, 2), 
+              ",", round(LSup, 2), "]")) 
+} 
+x=223; n=420; nivel.conf=0.95 
+
+intervaloProp(x, n, nivel.conf)
+@
+
+<<>>=
+# Utilizando la funci\'on proporcionada por el R.
+
+prop.test(223, 420, alternative = "two.sided", conf.level=0.95)
+
+@
+
+\begin{center}
+\textbf{3. INTERVALOS DE CONFIANZA PARA LA VARIANZA POBLACIONAL}
+\end{center}
+
+Ejemplo: El gerente de Inlet Square Mall, cerca de Ft. Myers, Florida, desea estimar la cantidad media que gasta los clientes que visitan el centro comercial. Una muestra de 20 clientes revela las siguientes cantidades.\\
+
+Determine un intervalo de confianza del 95\%.
+
+<<>>=
+GastoClientes <- c (48.16, 42.22, 46.82, 51.45, 23.78, 41.86, 54.86, 
+                    37.92, 52.64, 48.59, 50.82, 49.94, 61.83, 661.69, 
+                    49.17, 61.46, 51.35, 52.68, 58.84, 43.88);
+GastoClientes
+
+# Construyendo una funci\'on en R para realizar la prueba de intervalos de
+# confianza para la varianza poblacional.
+
+intervalovarpobla <- function(n, nivel.conf=0.95)
+{
+  n=length(GastoClientes)
+  desviacion = (sd(GastoClientes)) # varianza
+  gl = n - 1 # grados de libertad
+  alfa = 1 - nivel.conf # valor de alfa
+  X_1 <- qchisq((alfa/2), gl, lower.tail = FALSE)
+  X_2 <- qchisq(1 - (alfa/2), gl, lower.tail = FALSE)
+  u <- ((n - 1)*desviacion)
+  print(rbind(desviacion, gl, alfa, X_1, X_2, u))  
+  LInf <- u/X_1 
+  LSup <- u/X_2 
+print(" ") 
+  print(paste("Intervalo para D es: [", round(LInf, 2), ",", round(LSup, 2), "]"))
+              
+}
+ n=length(GastoClientes); nivel.conf=0.95 
+intervalovarpobla ( n, nivel.conf)   
+  
+@
+
+\begin{center}
+\textbf{4. INTERVALOS DE CONFIANZA PARA DIFERENCIA DE MEDIAS, MUESTRAS 
+INDEPENDIENTES.}
+\end{center}
+
+\textbf{CASO 1: VARIANZAS CONOCIDAS.}\\
+
+Ejemplo: La Area Chamber of Commerce de Tampa Bay (Florida) quer\'ia saber si el salario semanal medio de las emfermeras eran mayor que el de los maestros de escuela. Para esta investigaci\'on recopil\'o la informaci\'on siguente sobre las cantidades que gan\'o la semana pasada una muestra de maestros y enfermeras. Utilice un nivel de significancia de 99\%.
+
+<<>>=
+
+Maestros <- c(845, 826, 827, 875, 784, 809, 802, 820, 829, 830, 842, 832);
+
+Maestros
+
+Enfermeras <- c(841, 890, 821, 771, 850, 859, 825, 829); 
+
+Enfermeras
+
+# Construyendo una funci\'on en R para realizar la prueba de intervalos de
+# confianza para varianza conocida.
+
+interdifvarcono <- function(n1, n2, nivel.conf=0.99)
+  
+{
+  n1 = length(Maestros) # Tama\~no de la poblaci\'on Maestros
+  n2 = length(Enfermeras) # Tama\~no de la poblaci\'on Enfermeras
+  desviacion1 = (sd(Maestros)) # Desviacion de la poblaci\on Maestros
+  desviacion2 = (sd(Enfermeras)) # Desviacion de la poblaci\on Enfermeras
+  media1 = (mean(Maestros)) # Media de la poblaci\'on Maestros
+  media2 = (mean(Enfermeras)) # Media de la poblaci\'on Enfermeras
+  alfa = (1 - nivel.conf)
+  Diferencia = media1 - media2
+  margen_error = qnorm(alfa/2, mean = 0, sd = 1, lower.tail = FALSE)*
+    sqrt((desviacion1/n1) + (desviacion2/n2))
+  print(rbind(n1, n2, media1, media2, desviacion1, desviacion2, alfa, 
+              margen_error)) 
+  LInf = Diferencia-margen_error
+  LSup = Diferencia+margen_error
+  print("") 
+  print(paste("Intervalo para diferencia: [", round(LInf, 2), ",", round(LSup, 2), "]"))
+}
+
+n1 = length(Maestros); n2 = length(Enfermeras); nivel.conf=0.99
+interdifvarcono (n1, n2, nivel.conf=0.99)
+
+@
+
+\textbf{CASO 2: VARIANZAS DESCONOCIDAS PERO IGUALES (MUESTRAS PEQUE\~NAS)}\\
+
+Ejemplo: La ciudad de laguna Beach opera dos estacionamentos p\'ublicos. El de Ocean Drive tiene capacidad para 125 autom\'oviles, y el Rio Rancho, para 130. Los planeadores urbanos consideran tanto aumentar el tama\~no de los estacionamientos como cambiar la estructura de las tarifas. Para iniciar, la oficina de planeaci\'on desea conocer el n\'umero de autom\'oviles que hay en los estacionamientos en diversas horas del d\'ia. Se encarga a un funcionario de planeaci\'on principiante la tarea de visitar los dos estaci\'onamientos a horas aleatorias del d\'ia y la tarea para contar el n\'umero de veh\'iculos en ellos. El estudio se realiz\'o durante un periodo de un mes. A continuaci\'on se presenta el n\'umero de autom\'oviles en los estacionamientos durante 25 visitas al estacionamiento Ocean Drive y 28 al R\'io Rancho. Utilice el nivel de significancia de 95\%.
+
+<<>>=
+
+OceanDrive <- c(89, 115, 93, 79, 113, 77, 51, 75, 118, 105, 106, 91, 
+                54, 63, 121, 53, 81, 115, 67, 53, 69, 95, 121, 88, 64);
+
+OceanDrive
+
+RioRancho <- c(128, 110, 81, 126, 82, 114, 93, 40, 94, 45, 84, 71, 74, 
+               92, 66, 69, 100, 114, 113, 107, 62, 77, 80, 107, 90, 129, 
+               105, 124); 
+
+RioRancho
+
+
+# Construyendo una funci\'on en R para realizar la prueba de intervalos de
+# confianza para varianza desconocida iguales.
+
+interdifvarcono <- function(n1, n2, nivel.conf=0.95)
+  
+{
+  
+  n1 = length(OceanDrive) # Tama\~no de la poblaci\'on OceanDrive
+  n2 = length(RioRancho) # Tama\~no de la poblaci\'on RioRancho
+  varianza1 = (var(OceanDrive)) # Desviacion de la poblaci\on OceanDrive
+  varianza2 = (var(RioRancho)) # Desviacion de la poblaci\on RioRancho
+  media1 = (mean(OceanDrive)) # Media de la poblaci\'on OceanDrive
+  media2 = (mean(RioRancho)) # Media de la poblaci\'on RioRancho
+  Diferencia = media1 - media2
+  alfa = (1 - nivel.conf)
+  gl = (n1 + n2 - 2)
+  p = ((n1 - 1)*varianza1) + ((n2 - 1)*varianza2)
+  S = p/gl
+  margen_error = qt(alfa/2, gl, lower.tail = FALSE)*sqrt(S*(1/n1) + (1/n2))
+  print(rbind(n1, n2, media1, media2, varianza1, varianza2, alfa, margen_error)) 
+  LInf <- Diferencia - margen_error
+  LSup <- Diferencia + margen_error
+  print("") 
+  print(paste("Intervalo para diferencia varianza desconocida: [", round(LInf, 2), 
+              ",", round(LSup, 2), "]"))
+  
+}
+
+n1=length(OceanDrive); n2=length(RioRancho); nivel.conf=0.95
+interdifvarcono (n1, n2, nivel.conf=0.95)
+
+@
+
+\textbf{CASO 3: VARIANZAS DESCONOCIDAS PERO DIFERENTES (MUESTRAS PEQUE\~NAS)}
+
+Ejemplo: El centro m\'edico Grand Starnd Family se dise\~no para atender emergencias m\'edicas menores de los habitantes del \'area de Myrtle Beach. Hay dos instaaciones, una en Little River Area y la otra en Murrells Intel. El departamento de control de calidad desea comparar los tiempos de espera medios de los pacientes en las dos ubicaciones. Las muestras de los tiempos de espera, en minutos. Suponga que las desviaciones est\'andares de las poblaciones no son iguales. Con un nivel de significacia de 90\%. 
+
+<<>>=
+
+LittleRiver <- c(31.73, 28.77, 29.53, 22.08, 29.47, 18.60, 32.94, 25.18, 29.82, 26.49);
+LittleRiver 
+
+MurrellsIntel <- c(22.93, 23.92, 26.92, 27.20, 26.44, 25.62, 30.61, 29.44, 23.09, 23.10, 26.69, 22.31);
+MurrellsIntel
+
+# VARIANZAS DESCONOCIDAS PERO DIFERENTES (MUESTRAS PEQUE\~NAS)
+# Creando nuestra propia funci\'on
+
+interdes <- function(n1, n2, nivel.conf=0.90)
+  
+{
+  
+  n1 = length(LittleRiver) #  Tama\~no de la poblaci\'on Cadiz
+  n2 = length(MurrellsIntel) # Tama\~no de la poblaci\'on MurrellsIntel
+  varianza1 = (var(LittleRiver)) # Varianza de LittleRiver
+  varianza2 = (var(MurrellsIntel)) # Varianza de MurrellsIntel
+  Media1 = (mean(LittleRiver)) # Media de LittleRiver
+  Media2 = (mean(MurrellsIntel)) # Media de MurrellsIntel
+  Diferencia = Media1 - Media2
+  alfa = 1 - nivel.conf
+  m1 = (n1 - 1)
+  m2 = (n2 - 1)
+  w = (varianza1/n1) + (varianza2/n2)
+  w1 = (w^2)
+  k = ((varianza1/n1)^2/m1) + ((varianza2/n2)^2/m2)
+  v = (w1/k) # Grados de libertad
+  r = (varianza1/n1) +  (varianza2/n2)
+  margen_error = qt(alfa/2, v, lower.tail = TRUE)*(sqrt(r))
+  print(rbind(n1, n2, Media1, Media2, varianza1, varianza2, alfa, margen_error)) 
+  LInf <- Diferencia-margen_error
+  LSup <- Diferencia+margen_error
+  print("") 
+  print(paste("Intervalo para diferencia varianza desconocida diferentes: [", 
+              round(LInf, 2), ",", round(LSup, 2), "]"))
+  
+}  
+
+n1 = length(LittleRiver); n2 = length(MurrellsIntel); nivel.conf=0.90
+interdes (n1, n2, nivel.conf=0.95)
+
+
+@
+
+\textbf{CASO 4: VARIANZAS DESCONOCIDAS PERO IGUALES (MUESTRAS GRANDES)}
+
+Ejemplo: La productividad en el tarbajo depende de muchos factores, tales como el salario, las presentaciones, el ambiente laboral, etc. Por tal motivo una empresa decide someter a prueba dos modelos de producci\'on. Para decidir qu\'e modelo utilizar; se midieron los tiempos de producci\'on de los empleados en cada modelo. Asuma que las desviaciones est\'andar de las poblaciones son iguales y ulilice un nivel de significancia de 0.99.
+
+<<>>=
+
+ModeloA <- c(5.0, 5.1, 4.2, 4.5, 4.8, 6.0, 5.2, 5.5, 5.9, 6.3);
+ModeloA
+
+ModeloB <- c(5.5, 4.4, 5.4, 4.8, 6.8, 5.5, 6.5, 5.2, 5.7, 5.6, 5.9, 6.0);
+ModeloB
+# Construyendo una funci\'on en R para realizar la prueba de intervalos de
+# confianza para varianza desconocida iguales.
+
+interdifvarconop <- function(n1, n2, nivel.conf=0.99)
+  
+{
+  
+  n1 = length(ModeloA) # Tama\~no de la poblaci\'on ModeloA
+  n2 = length(ModeloB) # Tama\~no de la poblaci\'on ModeloB
+  varianza1 = (var(ModeloA)) # Desviacion de la poblaci\on ModeloA
+  varianza2 = (var(ModeloB)) # Desviacion de la poblaci\on ModeloB
+  media1 = (mean(ModeloA)) # Media de la poblaci\'on ModeloA
+  media2 = (mean(ModeloB)) # Media de la poblaci\'on ModeloB
+  Diferencia = media1 - media2
+  alfa = (1 - nivel.conf)
+  p = ((varianza1/n1) + (varianza2/n1))
+  margen_error = qnorm(alfa/2, mean = 0, sd = 1, lower.tail = FALSE)*(sqrt(p))
+  print(rbind(n1, n2, media1, media2, varianza1, varianza2, alfa, Diferencia,
+              margen_error)) 
+  LInf <- Diferencia-margen_error
+  LSup <- Diferencia+margen_error
+  print("") 
+  print(paste("Intervalo para diferencia varianza desconocida: [", round(LInf, 2), 
+              ",", round(LSup, 2), "]"))
+}
+
+n1 = length(ModeloA); n2 = length(ModeloB); nivel.conf=0.99
+interdifvarconop (n1, n2, nivel.conf=0.99)
+
+@
+
+\textbf{5.  INTERVALOS DE CONFIANZA PARA LA DIFERENCIA DE DOS PROPORCIONES.}\\
+
+Ejemplo: Una cadena de hoteles grande intenta decidir si debe convertir m\'as de sus habitaciones de no fumar. El a\~no pasado, en una muestra aleatoria de 400 hu\'espedes, 166 pidieron cuartos de no fumar. Este a\~no, 250 hu\'espedes en una muestra de 380 prefirieron que no se fumara en su habitaci\'on. Utilice un nivel de confianza de 95\%
+
+
+<<>>=
+
+
+# Construyendo una funci\'on en R para realizar la prueba de intervalos de
+# confianza para varianza conocida.
+
+intervaloProp <- function(x1, x2, n1, n2, nivel.conf = 0.95) 
+  
+{
+  
+  p1 = x1 /n1 
+  p2 = x2 /n2
+  q1 = 1 - p1
+  q2 = 1 -p2
+  alfa = 1 - nivel.conf
+  margen_error = qnorm(alfa/2, mean = 0, sd = 1, lower.tail = FALSE)*(sqrt((p1*q1/n1) + (p2*q2/n2)))
+  print(rbind(p1, p2, q1, q2, alfa, margen_error)) 
+  extrIzq = (p1 - p2) - margen_error
+  extrDer = (p1 - p2) + margen_error
+  print("") 
+  print(paste("Intervalo para diferencia proporciones: [", 
+              round(extrIzq, 2), ",", round(extrDer, 2), "]"))
+  
+}  
+
+n1=400; n2=380; x1=166; x2=250; nivel.conf=0.95
+intervaloProp(x1, x2, n1, n2, nivel.conf = 0.95)
+@
+
+
+
+\end{document}
